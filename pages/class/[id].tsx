@@ -1,6 +1,5 @@
 "use client";
-
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import { useGradeStore } from "@/store/gradeStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,15 +9,14 @@ import { AddSectionDialog } from "@/components/AddSectionDialog";
 import { ClassSummary } from "@/components/ClassSummary";
 import { ArrowLeft, Trash2, Edit2, Check, X } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Class, Section } from "@/lib/gradeCalculations";
+import { Class, Section, Assignment } from "@/lib/gradeCalculations";
 
 export default function ClassDetailPage() {
-  const params = useParams();
-  const id = params.id as string;
   const router = useRouter();
-  const [classData, setClassData] = useState<Class | null>(null);
+  const { id } = router.query as { id?: string };
+  const [classData, setClassData] = useState<any>(null);
 
-  const classes = useGradeStore((state) => state.classes);
+  const allClasses = useGradeStore((state) => state.classes);
   const updateClassName = useGradeStore((state) => state.updateClassName);
   const removeClass = useGradeStore((state) => state.removeClass);
 
@@ -26,10 +24,12 @@ export default function ClassDetailPage() {
   const [editedName, setEditedName] = useState("");
 
   useEffect(() => {
-    const c = classes.find((c) => c.id === id) || null;
-    setClassData(c);
-    if (c) setEditedName(c.name);
-  }, [classes, id]);
+    if (id) {
+      const c = allClasses.find((cls) => cls.id === id);
+      setClassData(c);
+      setEditedName(c?.name || "");
+    }
+  }, [id, allClasses]);
 
   if (!classData) {
     return (
@@ -69,7 +69,6 @@ export default function ClassDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header Section */}
       <div className="bg-navy border-b-2 border-olive/30">
         <div className="container mx-auto px-6 py-6 max-w-7xl">
           <div className="flex items-center justify-between">
