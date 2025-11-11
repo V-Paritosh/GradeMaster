@@ -1,4 +1,5 @@
 "use client";
+
 import { useParams, useRouter } from "next/navigation";
 import { useGradeStore } from "@/store/gradeStore";
 import { Button } from "@/components/ui/button";
@@ -8,26 +9,39 @@ import { SectionCard } from "@/components/SectionCard";
 import { AddSectionDialog } from "@/components/AddSectionDialog";
 import { ClassSummary } from "@/components/ClassSummary";
 import { ArrowLeft, Trash2, Edit2, Check, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Class, Section } from "@/lib/gradeCalculations";
 
 export default function ClassDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
-  const classData = useGradeStore((state) => state.classes.find((c) => c.id === id));
+  const [classData, setClassData] = useState<Class | null>(null);
+
+  const classes = useGradeStore((state) => state.classes);
   const updateClassName = useGradeStore((state) => state.updateClassName);
   const removeClass = useGradeStore((state) => state.removeClass);
-  
+
   const [isEditingName, setIsEditingName] = useState(false);
-  const [editedName, setEditedName] = useState(classData?.name || "");
+  const [editedName, setEditedName] = useState("");
+
+  useEffect(() => {
+    const c = classes.find((c) => c.id === id) || null;
+    setClassData(c);
+    if (c) setEditedName(c.name);
+  }, [classes, id]);
 
   if (!classData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-6">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Class not found</h1>
-          <p className="text-gray mb-6">The class you're looking for doesn't exist.</p>
-          <Button 
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Class not found
+          </h1>
+          <p className="text-gray mb-6">
+            The class you're looking for doesn't exist.
+          </p>
+          <Button
             onClick={() => router.push("/dashboard")}
             className="bg-olive text-background hover:bg-olive/90"
           >
@@ -130,9 +144,9 @@ export default function ClassDetailPage() {
         {classData.sections.length > 0 && (
           <ClassSummary classData={classData} />
         )}
-        
+
         <div className="space-y-6 mt-6">
-          {classData.sections.map((section) => (
+          {classData.sections.map((section: Section) => (
             <SectionCard
               key={section.id}
               classId={classData.id}
@@ -155,4 +169,3 @@ export default function ClassDetailPage() {
     </div>
   );
 }
-
