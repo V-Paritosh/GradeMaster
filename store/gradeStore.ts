@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Class, Assignment } from "@/lib/gradeCalculations";
-import { encrypt, decrypt } from "@/lib/crypto";
+// import { encrypt, decrypt } from "@/lib/crypto";
 
 interface GradeStore {
   userId: string | null;
