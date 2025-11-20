@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import Link from "next/link";
+import Image from "next/image";
+import logo from "@/public/logo.png";
 import {
   Calculator,
   BarChart3,
@@ -44,7 +47,23 @@ export default function LandingPage() {
       >
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-olive">GradeMaster</h1>
+            {/* Left side: logo + title together */}
+            <div className="flex items-center gap-3">
+              <Link href="/" className="flex items-center gap-3">
+                <div className="rounded-xl">
+                  <Image
+                    src={logo}
+                    alt="Logo"
+                    width={40}
+                    height={40}
+                    className="object-contain"
+                  />
+                </div>
+                <h1 className="text-2xl font-bold text-olive">GradeMaster</h1>
+              </Link>
+            </div>
+
+            {/* Right side: nav links */}
             <div className="hidden md:flex items-center gap-8">
               <button
                 onClick={() => scrollToSection("home")}
@@ -67,26 +86,13 @@ export default function LandingPage() {
                 About
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-olive transition-all duration-300 group-hover:w-full" />
               </button>
-              {/* <button
-                onClick={() => scrollToSection("contact")}
-                className="text-foreground hover:text-olive transition-colors relative group"
-              >
-                Contact
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-olive transition-all duration-300 group-hover:w-full" />
-              </button> */}
-              {/* <Button
-                variant="outline"
-                className="border-olive text-olive hover:bg-olive hover:text-background transition-all"
-                onClick={() => router.push("/dashboard")}
-              >
-                Login
-              </Button> */}
+
               <Button
                 variant="outline"
                 className="border-olive text-olive hover:bg-olive hover:text-background transition-all"
-                onClick={() => router.push("/dashboard")}
+                onClick={() => router.push("/auth")}
               >
-                Dashboard
+                Login
               </Button>
             </div>
           </div>
@@ -117,7 +123,7 @@ export default function LandingPage() {
             <p className="text-xl md:text-2xl text-gray mb-12 max-w-3xl mx-auto">
               <span className="font-semibold text-olive">
                 Built for Schaumburg High School and D211 District. Data stays
-                local in your session.
+                secure with MongoDB Atlas across devices.
               </span>
               <br />
               Add your classes, set custom weights, and know your exact standing
@@ -144,7 +150,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
       {/* How It Works */}
       <section className="py-24 bg-background border-t-2 border-olive">
         <div className="container mx-auto px-6">
@@ -227,10 +232,9 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-olive/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-olive/30 transition-colors">
                 <Cloud className="w-6 h-6 text-olive" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Local Storage</h3>
+              <h3 className="text-xl font-semibold mb-3">Cloud Sync</h3>
               <p className="text-gray text-sm">
-                Data saved locally in your session. Not sent to external
-                servers.
+                Data saved securely with MongoDB Atlas across devices.
               </p>
             </Card>
           </div>
@@ -332,8 +336,8 @@ export default function LandingPage() {
             </h2>
             <p className="text-gray text-lg max-w-3xl mx-auto">
               Built by Paritosh Vaghasiya, for students at Schaumburg High
-              School and D211 District. All data is stored locally in the
-              session and is not sent to any external servers.
+              School and D211 District. All data is stored securely with MongoDB
+              Atlas across devices.
             </p>
           </div>
 
@@ -420,7 +424,8 @@ export default function LandingPage() {
         <div className="container mx-auto px-6 text-center">
           <p className="text-gray mb-4">
             © 2025 Grade Calculator. Built for Schaumburg High School and D211
-            District. All data is stored locally in the session.
+            District. All data is stored securely with MongoDB Atlas across
+            devices.
           </p>
           <p className="text-olive flex justify-center items-center gap-2 mb-4">
             Made with <span className="text-red-500">❤️</span> by Paritosh

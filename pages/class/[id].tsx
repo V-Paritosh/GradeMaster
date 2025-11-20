@@ -62,8 +62,8 @@ export default function ClassDetailPage() {
 
   const handleDelete = () => {
     if (confirm(`Are you sure you want to delete "${classData.name}"?`)) {
+      setTimeout(() => router.push("/dashboard"), 10);
       removeClass(classData.id);
-      router.push("/dashboard");
     }
   };
 

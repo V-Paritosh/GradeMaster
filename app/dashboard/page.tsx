@@ -1,15 +1,42 @@
 "use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useGradeStore } from "@/store/gradeStore";
 import { ClassCard } from "@/components/ClassCard";
 import { AddClassDialog } from "@/components/AddClassDialog";
-import { GraduationCap, BookOpen, TrendingUp } from "lucide-react";
+import { GraduationCap, LogOut } from "lucide-react";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import logo from "@/public/logo.png";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { signOut, getCurrentSession } from "@/lib/auth";
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const userId = useGradeStore((state) => state.userId);
   const classes = useGradeStore((state) => state.classes);
+  const fetchGrades = useGradeStore((state) => state.fetchGrades);
+  const setUser = useGradeStore((state) => state.setUser);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const session = await getCurrentSession();
+      if (!session) {
+        router.push("/auth");
+        return;
+      }
+    };
+
+    checkSession();
+  }, [router, fetchGrades]);
+
+  const handleLogout = () => {
+    setUser(null);
+    signOut();
+    router.push("/");
+  };
 
   const totalClasses = classes.length;
   const totalSections = classes.reduce((sum, c) => sum + c.sections.length, 0);
@@ -41,38 +68,23 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
-            <AddClassDialog />
-          </div>
 
-          {/* Stats Cards */}
-          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Card className="bg-slate border-slate p-4 hover:border-olive transition-all duration-300">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-olive/20">
-                  <BookOpen className="w-5 h-5 text-olive" />
-                </div>
-                <div>
-                  <p className="text-gray text-xs">Total Classes</p>
-                  <p className="text-2xl font-bold text-olive">{totalClasses}</p>
-                </div>
-              </div>
-            </Card>
-            <Card className="bg-slate border-slate p-4 hover:border-olive transition-all duration-300">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-olive/20">
-                  <TrendingUp className="w-5 h-5 text-olive" />
-                </div>
-                <div>
-                  <p className="text-gray text-xs">Total Sections</p>
-                  <p className="text-2xl font-bold text-olive">{totalSections}</p>
-                </div>
-              </div>
-            </Card>
-          </div> */}
+            <div className="flex items-center gap-3">
+              <AddClassDialog />
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex items-center gap-1"
+                onClick={handleLogout}
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Classes Grid */}
       <div className="container mx-auto px-6 py-12 max-w-7xl">
         {classes.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
