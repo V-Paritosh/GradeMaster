@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useGradeStore } from "@/store/gradeStore";
 import { ClassCard } from "@/components/ClassCard";
 import { AddClassDialog } from "@/components/AddClassDialog";
+import { ProfileDialog } from "@/components/ProfileDialog";
 import { GraduationCap, LogOut } from "lucide-react";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
@@ -70,6 +71,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex items-center gap-3">
+              <ProfileDialog />
               <AddClassDialog />
               <Button
                 variant="destructive"
