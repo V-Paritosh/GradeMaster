@@ -11,22 +11,29 @@ import Image from "next/image";
 import logo from "@/public/logo.png";
 import { useGradeStore } from "@/store/gradeStore";
 import { signIn, signUp } from "@/lib/auth";
+import { useAlertStore } from "@/store/alertStore";
 
 export default function AuthPage() {
   const router = useRouter();
+  const addAlert = useAlertStore((state) => state.addAlert);
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignup, setIsSignup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-
   const [scrolled, setScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  if (!mounted) return null;
 
   const scrollToSection = (id: string) => {
     router.push(`/#${id}`);
@@ -35,31 +42,52 @@ export default function AuthPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
 
     try {
       const result = isSignup
-        ? await signUp(email, password)
+        ? await signUp(email, password, firstName, lastName)
         : await signIn(email, password);
 
       if (result.error) {
-        setError(result.error.message || "Authentication failed");
+        addAlert({
+          title: "Error",
+          description: result.error.message || "Authentication failed",
+          variant: "destructive",
+          duration: 4000,
+        });
         return;
       }
 
       const userId = result.data.user?.id;
       if (!userId) {
-        setError("Could not get user ID");
+        addAlert({
+          title: "Error",
+          description: "Could not get user ID",
+          variant: "destructive",
+          duration: 4000,
+        });
         return;
       }
 
       useGradeStore.getState().setUser(userId);
       await useGradeStore.getState().fetchGrades();
 
+      addAlert({
+        title: "Success",
+        description: isSignup ? "Account created" : "Logged in successfully",
+        variant: "default",
+        duration: 4000,
+      });
+
       router.push("/dashboard");
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Something went wrong. Try again.");
+      addAlert({
+        title: "Error",
+        description: err.message || "Something went wrong. Try again.",
+        variant: "destructive",
+        duration: 4000,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +103,6 @@ export default function AuthPage() {
       >
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Left side: logo + title together */}
             <div className="flex items-center gap-3">
               <Link href="/" className="flex items-center gap-3">
                 <div className="rounded-xl">
@@ -91,7 +118,6 @@ export default function AuthPage() {
               </Link>
             </div>
 
-            {/* Right side: nav links */}
             <div className="hidden md:flex items-center gap-8">
               <button
                 onClick={() => scrollToSection("home")}
@@ -145,13 +171,37 @@ export default function AuthPage() {
               </p>
             </div>
 
-            {error && (
-              <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-                {error}
-              </div>
-            )}
-
             <form onSubmit={handleSubmit} className="space-y-4">
+              {isSignup && (
+                <div className="space-y-1">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input
+                    id="firstName"
+                    type="text"
+                    placeholder="John"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
+              )}
+
+              {isSignup && (
+                <div className="space-y-1">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    placeholder="Doe"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
+              )}
+
               <div className="space-y-1">
                 <Label htmlFor="email">Email</Label>
                 <Input
