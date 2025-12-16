@@ -364,14 +364,6 @@ export default function AuthPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <Label htmlFor="password">Password</Label>
-                    {!isSignup && (
-                      <Link
-                        href="#"
-                        className="text-xs text-olive hover:underline"
-                      >
-                        Forgot password?
-                      </Link>
-                    )}
                   </div>
                   <div className="relative">
                     <Input
