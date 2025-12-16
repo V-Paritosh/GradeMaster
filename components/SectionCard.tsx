@@ -39,7 +39,7 @@ export const SectionCard = ({ classId, section }: SectionCardProps) => {
   const [editedName, setEditedName] = useState(section.name);
   const [newAssignment, setNewAssignment] = useState({
     name: "",
-    grade: "A",
+    grade: "A+",
     points: "",
     multiplier: "1",
   });
@@ -93,9 +93,12 @@ export const SectionCard = ({ classId, section }: SectionCardProps) => {
       name: newAssignment.name.trim(),
       letterGrade: newAssignment.grade,
       totalPoints: parseFloat(newAssignment.points),
-      multiplier: parseFloat(newAssignment.multiplier) || 1,
+      multiplier:
+        newAssignment.multiplier === ""
+          ? 1
+          : parseFloat(newAssignment.multiplier),
     });
-    setNewAssignment({ name: "", grade: "A", points: "", multiplier: "1" });
+    setNewAssignment({ name: "", grade: "A+", points: "", multiplier: "1" });
   };
 
   // --- COLUMN CONFIGURATION ---
@@ -282,12 +285,21 @@ export const SectionCard = ({ classId, section }: SectionCardProps) => {
                     <div className={colWidths.mult}>
                       <Input
                         type="number"
-                        value={assignment.multiplier || 1}
-                        onChange={(e) =>
+                        // CHANGE 1: Use '??' so we display 0 correctly.
+                        // If we used '||', 0 would look like 1.
+                        value={assignment.multiplier ?? ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+
+                          // CHANGE 2: If the input is empty (user cleared it), set it to 0.
+                          // Otherwise, parse the number. We removed the '|| 1' so it doesn't force-reset.
+                          const newMultiplier =
+                            val === "" ? 0 : parseFloat(val);
+
                           updateAssignment(classId, section.id, assignment.id, {
-                            multiplier: parseFloat(e.target.value) || 1,
-                          })
-                        }
+                            multiplier: newMultiplier,
+                          });
+                        }}
                         className="w-full bg-background border-border focus:border-olive text-center h-9 px-1"
                         placeholder="1.0"
                         min="0"
