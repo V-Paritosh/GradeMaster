@@ -301,7 +301,7 @@ export const SectionCard = ({ classId, section }: SectionCardProps) => {
                           });
                         }}
                         className="w-full bg-background border-border focus:border-olive text-center h-9 px-1"
-                        placeholder="1.0"
+                        placeholder=""
                         min="0"
                         step="0.1"
                       />
