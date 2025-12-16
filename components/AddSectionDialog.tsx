@@ -1,6 +1,12 @@
 "use client";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,13 +41,31 @@ export const AddSectionDialog = ({ classId }: AddSectionDialogProps) => {
           Add Section
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-slate border-slate">
+
+      {/* 1. top-[15%] & translate-y-0: Positions modal near top on mobile so keyboard fits below.
+          2. md:top-[50%] & md:translate-y-[-50%]: Re-centers on desktop.
+          3. onOpenAutoFocus: Prevents immediate keyboard jump on touch devices.
+      */}
+      <DialogContent
+        className="
+          sm:max-w-md bg-slate border-slate
+          fixed left-[50%] 
+          top-[15%] translate-y-0 
+          md:top-[50%] md:translate-y-[-50%] 
+          gap-4
+        "
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-foreground">Add New Section</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-foreground">
+            Add New Section
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="sectionName" className="text-foreground">Section Name</Label>
+            <Label htmlFor="sectionName" className="text-foreground">
+              Section Name
+            </Label>
             <Input
               id="sectionName"
               placeholder="e.g., Formative, Summative"
@@ -52,7 +76,9 @@ export const AddSectionDialog = ({ classId }: AddSectionDialogProps) => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="weight" className="text-foreground">Weight (%)</Label>
+            <Label htmlFor="weight" className="text-foreground">
+              Weight (%)
+            </Label>
             <Input
               id="weight"
               type="number"
@@ -64,7 +90,10 @@ export const AddSectionDialog = ({ classId }: AddSectionDialogProps) => {
               max="100"
             />
           </div>
-          <Button type="submit" className="w-full bg-olive text-background hover:bg-olive/90">
+          <Button
+            type="submit"
+            className="w-full bg-olive text-background hover:bg-olive/90"
+          >
             Create Section
           </Button>
         </form>

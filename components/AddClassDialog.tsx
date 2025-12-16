@@ -1,6 +1,12 @@
 "use client";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,23 +35,51 @@ export const AddClassDialog = () => {
           Add Class
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-slate border-slate">
+
+      {/* KEY CHANGES IN DialogContent:
+         1. top-[15%] translate-y-0: Moves modal to the top area on mobile/tablet 
+            so the keyboard won't cover it.
+         2. md:top-[50%] md:translate-y-[-50%]: Restores perfect centering 
+            only on desktop screens.
+         3. onOpenAutoFocus: Prevents jarring keyboard jumps on open (optional).
+      */}
+      <DialogContent
+        className="
+          sm:max-w-md bg-slate border-slate
+          fixed left-[50%] 
+          top-[15%] translate-y-0 
+          md:top-[50%] md:translate-y-[-50%] 
+          gap-4
+        "
+        // Optional: Prevents the keyboard from flashing open immediately on touch devices
+        // Remove this line if you WANT the keyboard to open instantly.
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-foreground">Add New Class</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-foreground">
+            Add New Class
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="className" className="text-foreground">Class Name</Label>
+            <Label htmlFor="className" className="text-foreground">
+              Class Name
+            </Label>
             <Input
               id="className"
               placeholder="e.g., Physics, Mathematics"
               value={className}
               onChange={(e) => setClassName(e.target.value)}
               className="bg-background border-border focus:border-olive"
+              // Only autoFocus if we didn't prevent it in DialogContent,
+              // or keep it to allow typing once user taps.
               autoFocus
             />
           </div>
-          <Button type="submit" className="w-full bg-olive text-background hover:bg-olive/90">
+          <Button
+            type="submit"
+            className="w-full bg-olive text-background hover:bg-olive/90"
+          >
             Create Class
           </Button>
         </form>
