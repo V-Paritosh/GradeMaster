@@ -17,6 +17,8 @@ import {
   Target,
   Zap,
   Mail,
+  Menu,
+  X, 
   Github,
   Globe,
 } from "lucide-react";
@@ -24,6 +26,7 @@ import {
 export default function LandingPage() {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,22 +37,31 @@ export default function LandingPage() {
   }, []);
 
   const scrollToSection = (id: string) => {
+    setIsMenuOpen(false);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
+
+    const toggleMenu = () => {
+      setIsMenuOpen(!isMenuOpen);
+    };
 
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
       <nav
         className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-          scrolled ? "bg-navy shadow-lg" : "bg-transparent"
+          scrolled || isMenuOpen ? "bg-navy shadow-lg" : "bg-transparent"
         }`}
       >
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Left side: logo + title together */}
+            {/* Logo Area */}
             <div className="flex items-center gap-3">
-              <Link href="/" className="flex items-center gap-3">
+              <Link
+                href="/"
+                className="flex items-center gap-3"
+                onClick={() => setIsMenuOpen(false)}
+              >
                 <div className="rounded-xl">
                   <Image
                     src={logo}
@@ -63,7 +75,7 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            {/* Right side: nav links */}
+            {/* Desktop Navigation (Hidden on Mobile) */}
             <div className="hidden md:flex items-center gap-8">
               <button
                 onClick={() => scrollToSection("home")}
@@ -86,7 +98,6 @@ export default function LandingPage() {
                 About
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-olive transition-all duration-300 group-hover:w-full" />
               </button>
-
               <Button
                 variant="outline"
                 className="border-olive text-olive hover:bg-olive hover:text-background transition-all"
@@ -95,8 +106,57 @@ export default function LandingPage() {
                 Login
               </Button>
             </div>
+
+            {/* Mobile Hamburger Button (Visible on Mobile) */}
+            <button
+              onClick={toggleMenu}
+              className="md:hidden p-2 text-foreground hover:text-olive transition-colors focus:outline-none"
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu Overlay */}
+        {isMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 w-full bg-navy shadow-lg border-t border-white/10 flex flex-col p-4 animate-in slide-in-from-top-5 fade-in duration-200">
+            <button
+              onClick={() => scrollToSection("home")}
+              className="py-3 text-left text-foreground hover:text-olive transition-colors border-b border-white/5"
+            >
+              Home
+            </button>
+            <button
+              onClick={() => scrollToSection("features")}
+              className="py-3 text-left text-foreground hover:text-olive transition-colors border-b border-white/5"
+            >
+              Features
+            </button>
+            <button
+              onClick={() => scrollToSection("about")}
+              className="py-3 text-left text-foreground hover:text-olive transition-colors border-b border-white/5"
+            >
+              About
+            </button>
+            <div className="pt-4">
+              <Button
+                variant="outline"
+                className="w-full border-olive text-olive hover:bg-olive hover:text-white transition-all"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  router.push("/auth");
+                }}
+              >
+                Login
+              </Button>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
