@@ -3,6 +3,7 @@ export interface Assignment {
   name: string;
   letterGrade: string;
   totalPoints: number;
+  multiplier?: number;
 }
 
 export interface Section {
