@@ -6,9 +6,8 @@ import { useGradeStore } from "@/store/gradeStore";
 import { ClassCard } from "@/components/ClassCard";
 import { AddClassDialog } from "@/components/AddClassDialog";
 import { ProfileDialog } from "@/components/ProfileDialog";
-import { GraduationCap, LogOut } from "lucide-react";
+import { GraduationCap, LogOut, Calculator } from "lucide-react"; // Import Calculator icon
 import Image from "next/image";
-import { Card } from "@/components/ui/card";
 import logo from "@/public/logo.png";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -39,9 +38,6 @@ export default function DashboardPage() {
     router.push("/");
   };
 
-  const totalClasses = classes.length;
-  const totalSections = classes.reduce((sum, c) => sum + c.sections.length, 0);
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header Section */}
@@ -71,6 +67,26 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex items-center gap-3">
+              {/* BETTER GPA CALCULATOR BUTTON */}
+              <Link href="/calculator">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden sm:flex items-center gap-2 border-olive text-olive hover:bg-olive hover:text-white transition-all shadow-sm"
+                >
+                  <Calculator className="w-4 h-4" />
+                  GPA Calculator
+                </Button>
+                {/* Mobile Icon Only Version */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="flex sm:hidden border-olive text-olive hover:bg-olive hover:text-white"
+                >
+                  <Calculator className="w-4 h-4" />
+                </Button>
+              </Link>
+
               <ProfileDialog />
               <AddClassDialog />
               <Button
@@ -80,7 +96,7 @@ export default function DashboardPage() {
                 onClick={handleLogout}
               >
                 <LogOut className="w-4 h-4" />
-                Logout
+                {/* <span className="hidden sm:inline">Logout</span> */}
               </Button>
             </div>
           </div>
@@ -89,7 +105,7 @@ export default function DashboardPage() {
 
       <div className="container mx-auto px-6 py-12 max-w-7xl">
         {classes.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {classes.map((classData) => (
               <ClassCard key={classData.id} classData={classData} />
             ))}
