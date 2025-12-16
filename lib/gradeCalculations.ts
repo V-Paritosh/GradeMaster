@@ -21,20 +21,20 @@ export interface Class {
 
 export const letterToPercentage: Record<string, number> = {
   "A+": 100,
-  "A": 90,
+  A: 90,
   "A-": 82.5,
   "B+": 77.5,
-  "B": 70,
+  B: 70,
   "B-": 62.5,
   "C+": 57.5,
-  "C": 50,
+  C: 50,
   "C-": 42.5,
   "D+": 37.5,
-  "D": 30,
+  D: 30,
   "D-": 22.5,
   "F+": 17.5,
-  "F": 10,
-  "NC": 2.5,
+  F: 10,
+  NC: 2.5,
 };
 
 export const gradeCutoffs: Array<{ grade: string; min: number }> = [
@@ -59,38 +59,52 @@ export function letterToPercentageValue(letter: string): number {
   return letterToPercentage[letter] || 0;
 }
 
-export function calculateEarnedPoints(totalPoints: number, letterGrade: string): number {
+export function calculateEarnedPoints(
+  totalPoints: number,
+  letterGrade: string
+): number {
   const percentage = letterToPercentageValue(letterGrade) / 100;
   return totalPoints * percentage;
 }
 
+// *** THIS IS THE FIXED FUNCTION ***
 export function calculateSectionPercentage(assignments: Assignment[]): number {
-  if (assignments.length === 0) return 0;
-  
+  if (assignments.length === 0) return 100; // Defaults to 100% if no assignments exist (optional)
+
   let totalEarned = 0;
   let totalPoints = 0;
-  
+
   assignments.forEach((assignment) => {
-    const earned = calculateEarnedPoints(assignment.totalPoints, assignment.letterGrade);
-    totalEarned += earned;
-    totalPoints += assignment.totalPoints;
+    // 1. Get the multiplier, default to 1 if missing
+    const mult = assignment.multiplier ?? 1;
+
+    // 2. Calculate raw points earned
+    const earned = calculateEarnedPoints(
+      assignment.totalPoints,
+      assignment.letterGrade
+    );
+
+    // 3. Add to totals, applying multiplier to BOTH earned and total
+    totalEarned += earned * mult;
+    totalPoints += assignment.totalPoints * mult;
   });
-  
-  return totalPoints > 0 ? (totalEarned / totalPoints) * 100 : 0;
+
+  // Prevent division by zero if totalPoints is 0
+  return totalPoints > 0 ? (totalEarned / totalPoints) * 100 : 100;
 }
 
 export function calculateFinalPercentage(sections: Section[]): number {
   if (sections.length === 0) return 0;
-  
+
   let weightedSum = 0;
   let totalWeight = 0;
-  
+
   sections.forEach((section) => {
     const sectionPercentage = calculateSectionPercentage(section.assignments);
     weightedSum += sectionPercentage * section.weight;
     totalWeight += section.weight;
   });
-  
+
   return totalWeight > 0 ? weightedSum / totalWeight : 0;
 }
 
@@ -119,4 +133,3 @@ export function getGradeBgColor(grade: string): string {
   if (grade.startsWith("D")) return "border-grade-d/50 bg-grade-d/10";
   return "border-grade-f/50 bg-grade-f/10";
 }
-
