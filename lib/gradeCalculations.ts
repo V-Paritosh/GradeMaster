@@ -34,7 +34,8 @@ export const letterToPercentage: Record<string, number> = {
   "D-": 22.5,
   "F+": 17.5,
   F: 10,
-  NC: 2.5,
+  "F-": 2.5,
+  NC: 0,
 };
 
 export const gradeCutoffs: Array<{ grade: string; min: number }> = [
@@ -53,6 +54,7 @@ export const gradeCutoffs: Array<{ grade: string; min: number }> = [
   { grade: "F+", min: 14.5 },
   { grade: "F", min: 9.5 },
   { grade: "F-", min: 4.5 },
+  { grade: "NC", min: 0 },
 ];
 
 export function letterToPercentageValue(letter: string): number {
