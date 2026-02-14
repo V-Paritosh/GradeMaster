@@ -51,49 +51,70 @@ export function ProfileDialog() {
 
   const handleDelete = async () => {
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-      if (!token) {
+      // 1. Get the latest session data reliably
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
         addAlert({
           title: "Error",
-          description: "No access token",
+          description: "You are not logged in.",
           variant: "destructive",
           duration: 4000,
         });
         return;
       }
 
+      const token = session.access_token;
+
+      // 2. Call the API
       const res = await fetch("/api/delete-user", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          // This matches the "Bearer " check in your backend
           Authorization: `Bearer ${token}`,
         },
       });
 
+      // 3. Handle Errors
       if (!res.ok) {
-        const result = await res.json();
+        // Try to parse JSON, fallback to status text if JSON fails
+        let errorMessage = "Failed to delete account";
+        try {
+          const result = await res.json();
+          errorMessage = result.error || errorMessage;
+        } catch (e) {
+          errorMessage = res.statusText;
+        }
+
         addAlert({
           title: "Error",
-          description: result.error || "Failed to delete account",
+          description: errorMessage,
           variant: "destructive",
           duration: 4000,
         });
         return;
       }
 
+      // 4. Success: Sign out and redirect
       addAlert({
         title: "Success",
-        description: "Account deleted",
+        description: "Account deleted successfully",
         variant: "default",
         duration: 4000,
       });
+
+      // Force local signout so the UI updates immediately
       await supabase.auth.signOut();
       router.push("/");
     } catch (e) {
+      console.error("Delete Account Error:", e); // Helpful for debugging
       addAlert({
         title: "Error",
-        description: "Server error, try again",
+        description: "A network or server error occurred. Please try again.",
         variant: "destructive",
         duration: 4000,
       });

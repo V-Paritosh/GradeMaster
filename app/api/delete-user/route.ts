@@ -10,37 +10,58 @@ function env(value: string | undefined, name: string): string {
 }
 
 export async function POST(req: NextRequest) {
+  // 1. Extract the Token
   const authHeader = req.headers.get("authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return NextResponse.json(
       { error: "Missing Authorization header" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
   const token = authHeader.split(" ")[1];
 
-  const supabaseClient = createClient(
+  // 2. Verify the User (Standard Client)
+  // Fix: Add auth options to disable persistence
+  const supabase = createClient(
     env(process.env.NEXT_PUBLIC_SUPABASE_URL, "NEXT_PUBLIC_SUPABASE_URL"),
     env(
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     ),
-    { global: { headers: { Authorization: `Bearer ${token}` } } }
+    {
+      auth: {
+        persistSession: false, // Critical for server-side usage
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+    },
   );
 
-  const { data: authUser, error: userError } =
-    await supabaseClient.auth.getUser();
-  if (userError || !authUser?.user) {
+  // Pass the token directly to getUser to validate it
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser(token);
+
+  if (userError || !user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const userId = authUser.user.id;
+  const userId = user.id;
 
-  // Delete user from Supabase
+  // 3. Delete User from Supabase (Admin Client)
+  // Fix: Add auth options to disable persistence here too
   const admin = createClient(
     env(process.env.NEXT_PUBLIC_SUPABASE_URL, "NEXT_PUBLIC_SUPABASE_URL"),
-    env(process.env.SUPABASE_SERVICE_ROLE_KEY, "SUPABASE_SERVICE_ROLE_KEY")
+    env(process.env.SUPABASE_SERVICE_ROLE_KEY, "SUPABASE_SERVICE_ROLE_KEY"),
+    {
+      auth: {
+        persistSession: false, // Critical: Prevents "localStorage is not defined" errors
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+    },
   );
 
   const { error: deleteError } = await admin.auth.admin.deleteUser(userId);
@@ -48,14 +69,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: deleteError.message }, { status: 500 });
   }
 
-  // Delete user data from MongoDB
+  // 4. Delete User Data from MongoDB
   try {
     const { db } = await connectToDatabase();
-    await db.collection("grades").deleteOne({ userId });
+
+    // Using deleteMany in case there are orphaned records, though deleteOne works for unique IDs
+    await db.collection("grades").deleteMany({ userId });
   } catch (mongoError: any) {
+    console.error("MongoDB Error:", mongoError);
     return NextResponse.json(
       { error: mongoError.message || "Failed to delete MongoDB data" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
