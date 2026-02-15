@@ -40,6 +40,10 @@ export const metadata: Metadata = {
   creator: "Paritosh Vaghasiya",
   robots: "index, follow",
 
+  verification: {
+    google: "tfDueTzOrSEWyXNETy1bgUWpBCDIe6--P3VI26uGxf0",
+  },
+
   icons: {
     icon: [
       {
@@ -92,6 +96,8 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://grademaster211.netlify.app",
   },
+
+  
 };
 
 export default function RootLayout({
