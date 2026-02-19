@@ -1,4 +1,4 @@
-﻿# GradeMaster
+# GradeMaster
 
 A modern, web-based grade management system that allows students to track classes, manage assignments, and calculate weighted GPA with real-time insights.
 
@@ -45,7 +45,8 @@ GradeMaster is a full-stack web application designed for students to organize th
 
 **Authentication:**
 
-- Supabase Auth (email/password, session management)
+- Firebase Auth (email/password, session management)
+- Firestore for user profiles (firstName, lastName, graduationYear)
 
 **Other Tools:**
 
@@ -58,18 +59,21 @@ GradeMaster is a full-stack web application designed for students to organize th
 
 GradeMaster uses MongoDB with a document-based architecture centered on user grade data. Below is the data model:
 
+**Firestore Collection: users** (profile data)
+
+- Document ID = Firebase Auth UID
+- Fields: `firstName`, `lastName`, `graduationYear`, `email`
+
 **MongoDB Collection: grades**
 
 ```
-user (Supabase Auth)
+user (Firebase Auth)
 ┌──────────────────────────┐
-│ uid (Supabase ID)        │
+│ uid (Firebase UID)       │
 │ email                    │
-│ metadata:                │
-│   first_name             │
-│   last_name              │
-│   graduation_year        │
-│ created_at               │
+│ profile in Firestore     │
+│   firstName, lastName    │
+│   graduationYear         │
 └──────────────────────────┘
         ↓ userId (String)
 ┌──────────────────────────────────────────────────┐
@@ -94,7 +98,7 @@ user (Supabase Auth)
 
 **Data Flow:**
 
-1. User authenticates via Supabase
+1. User authenticates via Firebase Auth
 2. Frontend Zustand store maintains local state (classes, sections, assignments)
 3. Changes trigger a 300ms debounced sync to the backend
 4. Next.js API route upserts the entire grade structure in MongoDB
@@ -112,8 +116,8 @@ user (Supabase Auth)
 
 **Authentication Flow:**
 
-1. User signs up/logs in via Supabase Auth
-2. Session stored in browser local storage
+1. User signs up/logs in via Firebase Auth; profile stored in Firestore
+2. Session stored in browser (Firebase Auth persistence)
 3. Protected routes check session validity via `getCurrentSession()`
 4. Logout clears session and redirects to home
 
@@ -142,7 +146,7 @@ user (Supabase Auth)
 
 - Node.js 18+ and npm/yarn
 - MongoDB instance (local or MongoDB Atlas)
-- Supabase project (for authentication)
+- Firebase project (Auth + Firestore for profiles)
 
 **Steps:**
 
@@ -163,8 +167,22 @@ user (Supabase Auth)
    Create a `.env.local` file in the root directory:
 
    ```
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   # Firebase (client)
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+
+   # Firebase Admin (server: delete-user API). Use one of:
+   # Option A: Path to service account JSON
+   GOOGLE_APPLICATION_CREDENTIALS=/path/to/serviceAccountKey.json
+   # Option B: Inline (e.g. for Vercel)
+   # FIREBASE_ADMIN_PROJECT_ID=your_project_id
+   # FIREBASE_ADMIN_CLIENT_EMAIL=firebase-adminsdk-...@....iam.gserviceaccount.com
+   # FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+
    MONGODB_URI=your_mongodb_connection_string
    ```
 

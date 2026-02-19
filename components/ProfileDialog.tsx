@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabaseClient";
+import { auth, db } from "@/lib/firebaseClient";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useAlertStore } from "@/store/alertStore";
 import { useRouter } from "next/navigation";
+import { signOut } from "@/lib/auth";
 
 export function ProfileDialog() {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,11 +18,15 @@ export function ProfileDialog() {
 
   useEffect(() => {
     const loadUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) {
-        setEmail(data.user.email || "");
-        setFirstName(data.user.user_metadata?.first_name || "");
-        setLastName(data.user.user_metadata?.last_name || "");
+      const user = auth.currentUser;
+      if (user) {
+        setEmail(user.email || "");
+        const profileSnap = await getDoc(doc(db, "users", user.uid));
+        if (profileSnap.exists()) {
+          const data = profileSnap.data();
+          setFirstName(data.firstName ?? "");
+          setLastName(data.lastName ?? "");
+        }
       }
     };
     loadUser();
@@ -28,36 +34,44 @@ export function ProfileDialog() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.auth.updateUser({
-      data: { first_name: firstName, last_name: lastName },
-    });
-    if (error) {
+    const user = auth.currentUser;
+    if (!user) {
       addAlert({
         title: "Error",
-        description: error.message,
+        description: "You are not logged in.",
         variant: "destructive",
         duration: 4000,
       });
       return;
     }
-    addAlert({
-      title: "Success",
-      description: "Profile updated",
-      variant: "default",
-      duration: 4000,
-    });
-    setIsOpen(false);
+    try {
+      await setDoc(
+        doc(db, "users", user.uid),
+        { firstName, lastName },
+        { merge: true }
+      );
+      addAlert({
+        title: "Success",
+        description: "Profile updated",
+        variant: "default",
+        duration: 4000,
+      });
+      setIsOpen(false);
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      addAlert({
+        title: "Error",
+        description: error.message ?? "Failed to update profile",
+        variant: "destructive",
+        duration: 4000,
+      });
+    }
   };
 
   const handleDelete = async () => {
     try {
-      // 1. Get the latest session data reliably
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-
-      if (sessionError || !session) {
+      const user = auth.currentUser;
+      if (!user) {
         addAlert({
           title: "Error",
           description: "You are not logged in.",
@@ -67,21 +81,17 @@ export function ProfileDialog() {
         return;
       }
 
-      const token = session.access_token;
+      const token = await user.getIdToken();
 
-      // 2. Call the API
       const res = await fetch("/api/delete-user", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // This matches the "Bearer " check in your backend
           Authorization: `Bearer ${token}`,
         },
       });
 
-      // 3. Handle Errors
       if (!res.ok) {
-        // Try to parse JSON, fallback to status text if JSON fails
         let errorMessage = "Failed to delete account";
         try {
           const result = await res.json();
@@ -89,7 +99,6 @@ export function ProfileDialog() {
         } catch (e) {
           errorMessage = res.statusText;
         }
-
         addAlert({
           title: "Error",
           description: errorMessage,
@@ -99,7 +108,6 @@ export function ProfileDialog() {
         return;
       }
 
-      // 4. Success: Sign out and redirect
       addAlert({
         title: "Success",
         description: "Account deleted successfully",
@@ -107,11 +115,10 @@ export function ProfileDialog() {
         duration: 4000,
       });
 
-      // Force local signout so the UI updates immediately
-      await supabase.auth.signOut();
+      await signOut();
       router.push("/");
     } catch (e) {
-      console.error("Delete Account Error:", e); // Helpful for debugging
+      console.error("Delete Account Error:", e);
       addAlert({
         title: "Error",
         description: "A network or server error occurred. Please try again.",

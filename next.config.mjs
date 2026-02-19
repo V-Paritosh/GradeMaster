@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@supabase/supabase-js"],
-  webpack: (config, { isServer }) => {
+  webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
@@ -10,13 +9,6 @@ const nextConfig = {
       stream: false,
       util: false,
     };
-
-    config.module.rules.push({
-      test: /\.mjs$/,
-      include: /node_modules\/(@supabase|@babel)/,
-      type: "javascript/auto",
-    });
-
     return config;
   },
 };

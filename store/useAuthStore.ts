@@ -1,9 +1,12 @@
 import { create } from "zustand";
-import { supabase } from "@/lib/supabaseClient";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebaseClient";
+
+export type AuthUser = { id: string; uid: string; email?: string } | null;
 
 type AuthState = {
-  user: any | null;
-  setUser: (user: any | null) => void;
+  user: AuthUser;
+  setUser: (user: AuthUser) => void;
   fetchUser: () => Promise<void>;
 };
 
@@ -11,12 +14,19 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   setUser: (user) => set({ user }),
   fetchUser: async () => {
-    const { data } = await supabase.auth.getUser();
-    set({ user: data.user });
+    const user = auth.currentUser;
+    set({
+      user: user
+        ? { id: user.uid, uid: user.uid, email: user.email ?? undefined }
+        : null,
+    });
   },
 }));
 
-// Realtime listener for login/logout
-supabase.auth.onAuthStateChange((_event, session) => {
-  useAuthStore.getState().setUser(session?.user ?? null);
-});
+if (typeof window !== "undefined") {
+  onAuthStateChanged(auth, (user) => {
+    useAuthStore.getState().setUser(
+      user ? { id: user.uid, uid: user.uid, email: user.email ?? undefined } : null
+    );
+  });
+}
