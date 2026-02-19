@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminAuth } from "@/lib/firebaseAdmin";
+import { getAdminAuth, getAdminFirestore } from "@/lib/firebaseAdmin";
 import { connectToDatabase } from "@/lib/mongodb";
 
 export async function POST(req: NextRequest) {
@@ -27,6 +27,16 @@ export async function POST(req: NextRequest) {
     const err = deleteError as { message?: string };
     return NextResponse.json(
       { error: err.message ?? "Failed to delete user" },
+      { status: 500 },
+    );
+  }
+
+  try {
+    await getAdminFirestore().collection("users").doc(userId).delete();
+  } catch (firestoreError: unknown) {
+    const err = firestoreError as { message?: string };
+    return NextResponse.json(
+      { error: err.message ?? "Failed to delete Firestore data" },
       { status: 500 },
     );
   }
